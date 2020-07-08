@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"apiwarehouse/middleware"
 	"apiwarehouse/usecases"
 	"apiwarehouse/utils"
 	"encoding/json"
@@ -70,8 +71,10 @@ func (h WarehouseHandler) DeleteWarehouse(w http.ResponseWriter, r *http.Request
 
 func WarehouseController(r *mux.Router, model usecases.WarehouseUseCase){
 	WarehouseHandler := WarehouseHandler{model}
-	r.HandleFunc("/warehouse", WarehouseHandler.ListWarehouse).Methods(http.MethodGet)
-	r.HandleFunc("/warehouse", WarehouseHandler.InsertWarehouse).Methods(http.MethodPost)
-	r.HandleFunc("/warehouse", WarehouseHandler.UpdateWarehouse).Methods(http.MethodPut)
-	r.HandleFunc("/warehouse/{id}", WarehouseHandler.DeleteWarehouse).Methods(http.MethodDelete)
+	sub := r.PathPrefix("").Subrouter()
+	sub.Use(middleware.AuthMiddleware)
+	sub.HandleFunc("/warehouse", WarehouseHandler.ListWarehouse).Methods(http.MethodGet)
+	sub.HandleFunc("/warehouse", WarehouseHandler.InsertWarehouse).Methods(http.MethodPost)
+	sub.HandleFunc("/warehouse", WarehouseHandler.UpdateWarehouse).Methods(http.MethodPut)
+	sub.HandleFunc("/warehouse/{id}", WarehouseHandler.DeleteWarehouse).Methods(http.MethodDelete)
 }

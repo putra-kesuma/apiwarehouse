@@ -1,9 +1,12 @@
 package controllers
 
 import (
+	"apiwarehouse/middleware"
+	"apiwarehouse/models"
 	"apiwarehouse/usecases"
 	"apiwarehouse/utils"
 	"encoding/json"
+	"fmt"
 	"github.com/gorilla/mux"
 	"net/http"
 	"strconv"
@@ -28,16 +31,24 @@ func (h ItemHandler) ListItem(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h ItemHandler) InsertItem(w http.ResponseWriter, r *http.Request) {
-	err := h.ItemUseCase.InsertItem(r)
+	item := new(models.Item)
+	err := json.NewDecoder(r.Body).Decode(&item)
 	if err != nil {
-		w.Write([]byte("Data Not Found"))
+		w.Write([]byte("can't decode"))
+	}else {
+		errUsecase := h.ItemUseCase.InsertItem(item)
+		if errUsecase != nil {
+			//byteOfItem, _ := json.Marshal(utils.ErrorResponse(http.StatusNoContent,errUsecase))
+			//w.Header().Set("Content-Type", "application/json")
+			//w.Write(byteOfItem)
+			fmt.Println(errUsecase)
+			w.Write([]byte(fmt.Sprintf("%v",errUsecase)))
+		} else {
+			byteOfItem, _ := json.Marshal(utils.OtherResponse(http.StatusOK,"Insert Success"))
+			w.Header().Set("Content-Type", "application/json")
+			w.Write(byteOfItem)
+		}
 	}
-	byteOfItem,err := json.Marshal(utils.OtherResponse(http.StatusOK,"Insert Successfuly"))
-	if err != nil {
-		w.Write([]byte("Oops something when wrong"))
-	}
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(byteOfItem)
 }
 
 func (h ItemHandler) UpdateItem(w http.ResponseWriter, r *http.Request) {
@@ -70,8 +81,10 @@ func (h ItemHandler) DeleteItem(w http.ResponseWriter, r *http.Request) {
 
 func ItemController(r *mux.Router, model usecases.ItemUseCase){
 	ItemHandler := ItemHandler{model}
-	r.HandleFunc("/item", ItemHandler.ListItem).Methods(http.MethodGet)
-	r.HandleFunc("/item", ItemHandler.InsertItem).Methods(http.MethodPost)
-	r.HandleFunc("/item", ItemHandler.UpdateItem).Methods(http.MethodPut)
-	r.HandleFunc("/item/{id}", ItemHandler.DeleteItem).Methods(http.MethodDelete)
+	sub := r.PathPrefix("").Subrouter()
+	sub.Use(middleware.AuthMiddleware)
+	sub.HandleFunc("/item", ItemHandler.ListItem).Methods(http.MethodGet)
+	sub.HandleFunc("/item", ItemHandler.InsertItem).Methods(http.MethodPost)
+	sub.HandleFunc("/item", ItemHandler.UpdateItem).Methods(http.MethodPut)
+	sub.HandleFunc("/item/{id}", ItemHandler.DeleteItem).Methods(http.MethodDelete)
 }

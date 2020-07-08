@@ -8,7 +8,7 @@ import (
 type ItemRepository interface {
 	//blueprint for item
 	GetAllItem() ([]*models.Item,error)
-	InsertItem(*http.Request) error
+	InsertItem(*models.Item) error
 	UpdateItem(*http.Request) error
 	DeleteItem(*int) error
 }

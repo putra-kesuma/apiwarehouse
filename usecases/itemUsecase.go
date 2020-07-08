@@ -7,7 +7,7 @@ import (
 
 type ItemUseCase interface {
 	GetItem()  ([]*models.Item, error)
-	InsertItem(*http.Request) error
+	InsertItem(*models.Item) error
 	UpdateItem(*http.Request) error
 	DeleteItem(*int) error
 }

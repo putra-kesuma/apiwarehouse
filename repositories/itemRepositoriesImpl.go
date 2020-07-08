@@ -4,6 +4,7 @@ import (
 	"apiwarehouse/models"
 	"database/sql"
 	"encoding/json"
+	"log"
 	"net/http"
 )
 
@@ -11,6 +12,7 @@ import (
 type ItemRepoImp struct {
 	db *sql.DB
 }
+
 
 func (i ItemRepoImp) GetAllItem() ([]*models.Item, error) {
 	//make var for contain struct item
@@ -37,20 +39,45 @@ func (i ItemRepoImp) GetAllItem() ([]*models.Item, error) {
 	return dataItem, nil
 }
 
-func (i ItemRepoImp) InsertItem(request *http.Request) error {
-	dataItem := models.Item{}
-	_ = json.NewDecoder(request.Body).Decode(&dataItem) // json ke struct
-	tx, _ := i.db.Begin()
-	_, err := tx.Exec(`insert into m_item (name,dimensions,id_typeitem)
-								value (?,?,?);`,
-		&dataItem.Name, &dataItem.Dimension,
-		&dataItem.IdTypeItem)
+
+func (i ItemRepoImp) InsertItem(item *models.Item) error {
+	tx, err := i.db.Begin()
+	if err != nil {
+		return err
+	}
+
+	query := `insert into m_item (name,dimensions,id_typeitem)
+								value (?,?,?);`
+
+	stmt, err := i.db.Prepare(query)
 	if err != nil {
 		tx.Rollback()
+		log.Print(err)
+		return err
 	}
-	tx.Commit()
-	return nil
+	defer stmt.Close()
+
+	if _, err := stmt.Exec(item.Name,item.Dimension,item.IdTypeItem); err != nil {
+		tx.Rollback()
+		log.Printf("%v", err)
+		return err
+	}
+	return tx.Commit()
 }
+//func (i ItemRepoImp) InsertItem(request *http.Request) error {
+//	dataItem := models.Item{}
+//	_ = json.NewDecoder(request.Body).Decode(&dataItem) // json ke struct
+//	tx, _ := i.db.Begin()
+//	_, err := tx.Exec(`insert into m_item (name,dimensions,id_typeitem)
+//								value (?,?,?);`,
+//		&dataItem.Name, &dataItem.Dimension,
+//		&dataItem.IdTypeItem)
+//	if err != nil {
+//		tx.Rollback()
+//	}
+//	tx.Commit()
+//	return nil
+//}
 
 func (i ItemRepoImp) UpdateItem(request *http.Request) error {
 	dataItem := models.Item{}

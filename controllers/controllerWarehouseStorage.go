@@ -1,9 +1,12 @@
 package controllers
 
 import (
+	"apiwarehouse/middleware"
+	"apiwarehouse/models"
 	"apiwarehouse/usecases"
 	"apiwarehouse/utils"
 	"encoding/json"
+	"fmt"
 	"github.com/gorilla/mux"
 	"net/http"
 	"strconv"
@@ -29,16 +32,20 @@ func (h WarehouseStorageHandler) ListWarehouseStorage(w http.ResponseWriter, r *
 }
 
 func (h WarehouseStorageHandler) InsertWarehouseStorage(w http.ResponseWriter, r *http.Request) {
-	err := h.WarehouseStorageUseCase.InsertWarehouseStorage(r)
+	warehouseStorage := new(models.WarehouseStorage)
+	err := json.NewDecoder(r.Body).Decode(&warehouseStorage)
 	if err != nil {
-		w.Write([]byte("Oops something when wrong, not null your input"))
-	} else {
-		byteOfWarehouseStorage, err := json.Marshal(utils.OtherResponse(http.StatusOK, "Insert Successfuly"))
-		if err != nil {
-			w.Write([]byte("Oops something when wrong"))
+		w.Write([]byte("can't decode"))
+	}else {
+		errUsecase := h.WarehouseStorageUseCase.InsertWarehouseStorage(warehouseStorage)
+		if errUsecase != nil {
+			fmt.Println(errUsecase)
+			w.Write([]byte(fmt.Sprintf("%v",errUsecase)))
+		} else {
+			byteOfItem, _ := json.Marshal(utils.OtherResponse(http.StatusOK,"Insert Success"))
+			w.Header().Set("Content-Type", "application/json")
+			w.Write(byteOfItem)
 		}
-		w.Header().Set("Content-Type", "application/json")
-		w.Write(byteOfWarehouseStorage)
 	}
 }
 
@@ -74,8 +81,10 @@ func (h WarehouseStorageHandler) DeleteWarehouseStorage(w http.ResponseWriter, r
 
 func WarehouseStorageController(r *mux.Router, model usecases.WarehouseStorageUseCase){
 	WarehouseStorageHandler := WarehouseStorageHandler{model}
-	r.HandleFunc("/warehousestorage", WarehouseStorageHandler.ListWarehouseStorage).Methods(http.MethodGet)
-	r.HandleFunc("/warehousestorage", WarehouseStorageHandler.InsertWarehouseStorage).Methods(http.MethodPost)
-	r.HandleFunc("/warehousestorage", WarehouseStorageHandler.UpdateWarehouseStorage).Methods(http.MethodPut)
-	r.HandleFunc("/warehousestorage/{id}", WarehouseStorageHandler.DeleteWarehouseStorage).Methods(http.MethodDelete)
+	sub := r.PathPrefix("").Subrouter()
+	sub.Use(middleware.AuthMiddleware)
+	sub.HandleFunc("/warehousestorage", WarehouseStorageHandler.ListWarehouseStorage).Methods(http.MethodGet)
+	sub.HandleFunc("/warehousestorage", WarehouseStorageHandler.InsertWarehouseStorage).Methods(http.MethodPost)
+	sub.HandleFunc("/warehousestorage", WarehouseStorageHandler.UpdateWarehouseStorage).Methods(http.MethodPut)
+	sub.HandleFunc("/warehousestorage/{id}", WarehouseStorageHandler.DeleteWarehouseStorage).Methods(http.MethodDelete)
 }

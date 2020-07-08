@@ -3,11 +3,24 @@ package usecases
 import (
 	"apiwarehouse/models"
 	"apiwarehouse/repositories"
+	"errors"
 	"net/http"
 )
 
 type ItemUsecaseImpl struct {
 	itemRepo repositories.ItemRepository
+}
+
+func (i ItemUsecaseImpl) InsertItem(item *models.Item) error {
+	if item.IdTypeItem == 0 || item.Dimension == 0 || item.Name=="" {
+		return errors.New("can't null please check")
+	} else {
+		err := i.itemRepo.InsertItem(item)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
 }
 
 func (i ItemUsecaseImpl) GetItem() ([]*models.Item, error) {
@@ -19,13 +32,13 @@ func (i ItemUsecaseImpl) GetItem() ([]*models.Item, error) {
 	return item, nil
 }
 
-func (i ItemUsecaseImpl) InsertItem(request *http.Request) error {
-	err := i.itemRepo.InsertItem(request)
-	if err != nil {
-		return err
-	}
-	return nil
-}
+//func (i ItemUsecaseImpl) InsertItem(request *http.Request) error {
+//	err := i.itemRepo.InsertItem(request)
+//	if err != nil {
+//		return err
+//	}
+//	return nil
+//}
 
 func (i ItemUsecaseImpl) UpdateItem(request *http.Request) error {
 	err := i.itemRepo.UpdateItem(request)

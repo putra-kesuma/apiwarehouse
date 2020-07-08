@@ -25,8 +25,7 @@ func RunServer(router *mux.Router) {
 	host := os.Getenv("SERVER_IP_HOST")
 	port := os.Getenv("SERVER_PORT")
 	listen := fmt.Sprintf("%v:%v",host,port)
-	fmt.Println("Setting Web Server at host : " + host)
-	fmt.Println("Setting Web Server at port : " + port)
+	log.Printf("Setting Web Server at host : %v di port : %v", host,port	)
 	errListen := http.ListenAndServe(listen, router)
 	if errListen != nil {
 		log.Fatal(errListen)

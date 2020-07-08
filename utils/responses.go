@@ -11,6 +11,11 @@ type OtherResponses struct {
 	Message string
 }
 
+type ErrorResponses struct {
+	Status  int
+	Message error
+}
+
 func Response(status int, message string, data interface{}) Responses {
 	var response Responses
 	response.Status = status
@@ -21,6 +26,13 @@ func Response(status int, message string, data interface{}) Responses {
 
 func OtherResponse(status int, message string) OtherResponses {
 	var response OtherResponses
+	response.Status = status
+	response.Message = message
+	return response
+}
+
+func ErrorResponse(status int, message error) ErrorResponses {
+	var response ErrorResponses
 	response.Status = status
 	response.Message = message
 	return response
