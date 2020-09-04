@@ -11,6 +11,15 @@ type ItemUsecaseImpl struct {
 	itemRepo repositories.ItemRepository
 }
 
+func (i ItemUsecaseImpl) GetItemById(id *int) (*models.Item, error) {
+	item, err:= i.itemRepo.GetItemById(id)
+	if err != nil {
+		return nil, err
+	}
+
+	return item, nil
+}
+
 func (i ItemUsecaseImpl) InsertItem(item *models.Item) error {
 	if item.IdTypeItem == 0 || item.Dimension == 0 || item.Name=="" {
 		return errors.New("can't null please check")
@@ -23,22 +32,14 @@ func (i ItemUsecaseImpl) InsertItem(item *models.Item) error {
 	}
 }
 
-func (i ItemUsecaseImpl) GetItem() ([]*models.Item, error) {
-	item, err := i.itemRepo.GetAllItem()
+func (i ItemUsecaseImpl) GetItem() ([]*models.Item, error,*float64) {
+	item, err, countRow := i.itemRepo.GetAllItem()
 	if err != nil {
-		return nil, err
+		return nil, err,nil
 	}
 
-	return item, nil
+	return item, nil, countRow
 }
-
-//func (i ItemUsecaseImpl) InsertItem(request *http.Request) error {
-//	err := i.itemRepo.InsertItem(request)
-//	if err != nil {
-//		return err
-//	}
-//	return nil
-//}
 
 func (i ItemUsecaseImpl) UpdateItem(request *http.Request) error {
 	err := i.itemRepo.UpdateItem(request)

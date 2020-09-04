@@ -6,7 +6,8 @@ import (
 )
 
 type ItemUseCase interface {
-	GetItem()  ([]*models.Item, error)
+	GetItem()  ([]*models.Item, error,*float64)
+	GetItemById(*int)  (*models.Item, error)
 	InsertItem(*models.Item) error
 	UpdateItem(*http.Request) error
 	DeleteItem(*int) error

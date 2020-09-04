@@ -17,4 +17,10 @@ func main(){
 	routes.Init(route,db)
 	//run server
 	routes.RunServer(route)
+
+
+
 }
+
+
+
